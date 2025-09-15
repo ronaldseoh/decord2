@@ -45,10 +45,12 @@ add_library(decord SHARED ${DECORD_CORE_SRCS})
 # --- Modern Target-Based Properties ---
 
 # Set the include directories needed to compile the library
-target_include_directories(decord PRIVATE
+target_include_directories(decord
+        PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/dlpack/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/dmlc-core/include"
+        PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
@@ -143,8 +145,10 @@ if(GTest_FOUND)
     get_filename_component(test_name "${test_src}" NAME_WLE)
     add_executable(${test_name} ${test_src})
     target_link_libraries(${test_name} PRIVATE decord GTest::gtest)
-    if(NOT MSVC)
+    if(UNIX AND NOT APPLE AND NOT MSVC)
       target_link_libraries(${test_name} PRIVATE pthread dl)
+    elseif(APPLE)
+      target_link_libraries(${test_name} PRIVATE pthread)
     endif()
     add_test(NAME ${test_name} COMMAND ${test_name})
   endforeach()

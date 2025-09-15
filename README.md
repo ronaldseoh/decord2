@@ -67,7 +67,7 @@ sudo apt-get install -y ffmpeg libavcodec-dev libavfilter-dev libavformat-dev li
 Clone the repo recursively(important)
 
 ```bash
-git clone --recursive https://github.com/dmlc/decord
+git clone --recursive https://github.com/johnnynunez/decord2
 ```
 
 Build the shared library in source root directory:
