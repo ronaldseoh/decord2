@@ -36,7 +36,6 @@ void FFMPEGFilterGraph::Init(std::string filters_descr, AVCodecContext *dec_ctx)
     CHECK(buffersink) << "Error: no buffersink";
     AVFilterInOut *outputs = avfilter_inout_alloc();
 	AVFilterInOut *inputs  = avfilter_inout_alloc();
-	static const int64_t pix_fmts[] = { AV_PIX_FMT_RGB24 , AV_PIX_FMT_NONE };
 	// AVBufferSinkParams *buffersink_params;
 
 	filter_graph_.reset(avfilter_graph_alloc());
@@ -63,11 +62,11 @@ void FFMPEGFilterGraph::Init(std::string filters_descr, AVCodecContext *dec_ctx)
     // LOG(INFO) << "create filter src";
 
     /* buffer video sink: to terminate the filter chain. */
+        AVDictionary *sink_opts = nullptr;
+        av_dict_set(&sink_opts, "pix_fmts", "rgb24", 0);
         CHECK_GE(avfilter_graph_create_filter(&buffersink_ctx_, buffersink, "out",
-                NULL, NULL, filter_graph_.get()), 0) << "Cannot create buffer sink";
-        // Set desired pixel formats on the sink in newer FFmpeg versions
-        CHECK_GE(av_opt_set_int_list(buffersink_ctx_, "pix_fmts", pix_fmts,
-                AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN), 0) << "Cannot set buffer sink pixel formats";
+                NULL, &sink_opts, filter_graph_.get()), 0) << "Cannot create buffer sink";
+        av_dict_free(&sink_opts);
     // LOG(INFO) << "create filter sink";
 
     // LOG(INFO) << "create filter set opt";

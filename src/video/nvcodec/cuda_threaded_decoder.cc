@@ -301,7 +301,7 @@ bool CUThreadedDecoder::Pop(NDArray *frame) {
 void CUThreadedDecoder::LaunchThread() {
   try {
       LaunchThreadImpl();
-  } catch (dmlc::Error error) {
+  } catch (const dmlc::Error& error) {
       RecordInternalError(error.what());
       run_.store(false);
       frame_queue_->SignalForKill(); // Unblock all consumers
