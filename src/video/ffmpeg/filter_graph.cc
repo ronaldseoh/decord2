@@ -67,8 +67,7 @@ void FFMPEGFilterGraph::Init(std::string filters_descr, AVCodecContext *dec_ctx)
     // av_free(buffersink_params);
     // LOG(INFO) << "create filter sink";
     // CHECK_GE(av_opt_set_bin(buffersink_ctx_, "pix_fmts", (uint8_t *)&pix_fmts, sizeof(AV_PIX_FMT_RGB24), AV_OPT_SEARCH_CHILDREN), 0) << "Set bin error";
-    CHECK_GE(av_opt_set_int_list(buffersink_ctx_, "pix_fmts", pix_fmts, AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN), 0) << "Set output pixel format error.";
-
+    CHECK_GE(av_opt_set_bin(buffersink_ctx_, "pix_fmts", (uint8_t *)pix_fmts, sizeof(AVPixelFormat), AV_OPT_SEARCH_CHILDREN), 0) << "Set output pixel format error.";
     // LOG(INFO) << "create filter set opt";
     /* Endpoints for the filter graph. */
     outputs->name       = av_strdup("in");
