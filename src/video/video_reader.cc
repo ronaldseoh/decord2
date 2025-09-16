@@ -146,8 +146,8 @@ VideoReader::~VideoReader(){
 
 void VideoReader::SetVideoStream(int stream_nb) {
     if (!fmt_ctx_) return;
-        const AVCodec *dec;
-    int st_nb = av_find_best_stream(fmt_ctx_.get(), AVMEDIA_TYPE_VIDEO, stream_nb, -1, (const AVCodec**)&dec, 0);
+    const AVCodec *dec;
+    int st_nb = av_find_best_stream(fmt_ctx_.get(), AVMEDIA_TYPE_VIDEO, stream_nb, -1, &dec, 0);
     // LOG(INFO) << "find best stream: " << st_nb;
     CHECK_GE(st_nb, 0) << "ERROR cannot find video stream with wanted index: " << stream_nb;
     // initialize the mem for codec context
@@ -160,13 +160,15 @@ void VideoReader::SetVideoStream(int stream_nb) {
     if (kDLCPU == ctx_.device_type) {
         decoder_ = std::unique_ptr<ThreadedDecoderInterface>(new FFMPEGThreadedDecoder());
     } else if (kDLGPU == ctx_.device_type) {
-#ifdef DECORD_USE_CUDA
+#if DECORD_USE_CUDA
         // note: cuda threaded decoder will modify codecpar
         decoder_ = std::unique_ptr<ThreadedDecoderInterface>(new cuda::CUThreadedDecoder(
             ctx_.device_id, codecpar.get(), fmt_ctx_->iformat));
 #else
-        LOG(FATAL) << "CUDA not enabled. Requested context GPU(" << ctx_.device_id << ").";
+        LOG(FATAL) << "GPU acceleration not available on this platform.";
 #endif
+    } else if (kDLMetal == ctx_.device_type) {
+        LOG(FATAL) << "Metal device type not supported on this platform.";
     } else {
         LOG(FATAL) << "Unknown device type: " << ctx_.device_type;
     }
@@ -549,31 +551,19 @@ double VideoReader::GetRotation() const {
     CHECK(actv_stm_idx_ >= 0);
     CHECK(static_cast<unsigned int>(actv_stm_idx_) < fmt_ctx_->nb_streams);
     AVStream *active_st = fmt_ctx_->streams[actv_stm_idx_];
-    double theta = 0;
-#if LIBAVFORMAT_VERSION_MAJOR >= 60
     AVDictionaryEntry *rotate = av_dict_get(active_st->metadata, "rotate", NULL, 0);
-    if (rotate && rotate->value && strcmp(rotate->value, "0")) {
+
+    double theta = 0;
+    if (rotate && *rotate->value && strcmp(rotate->value, "0"))
         theta = atof(rotate->value);
-    }
-#else
-    uint8_t *displaymatrix = nullptr;
-    for (int i = 0; i < active_st->nb_side_data; ++i) {
-        if (active_st->side_data[i].type == AV_PKT_DATA_DISPLAYMATRIX) {
-            displaymatrix = active_st->side_data[i].data;
-            break;
-        }
-    }
-    if (displaymatrix) {
-        theta = -av_display_rotation_get(reinterpret_cast<int32_t *>(displaymatrix));
-    } else {
-        AVDictionaryEntry *rotate = av_dict_get(active_st->metadata, "rotate", NULL, 0);
-        if (rotate && rotate->value && strcmp(rotate->value, "0")) {
-            theta = atof(rotate->value);
-        }
-    }
-#endif
+
+    // Note: av_stream_get_side_data is not available in FFmpeg 6.0+
+    // uint8_t* displaymatrix = av_stream_get_side_data(active_st, AV_PKT_DATA_DISPLAYMATRIX, NULL);
+    // if (displaymatrix && !theta)
+    //     theta = -av_display_rotation_get((int32_t*) displaymatrix);
+
     theta = std::fmod(theta, 360);
-    if (theta < 0) theta += 360;
+    if(theta < 0) theta += 360;
 
     return theta;
 }
