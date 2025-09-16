@@ -33,19 +33,24 @@ if(APPLE)
     message(STATUS "Found CoreMedia: ${COREMEDIA_LIBRARY}")
     message(STATUS "Found Metal: ${METAL_LIBRARY}")
 
-    # Add VideoToolbox source files
-    file(GLOB VIDEOTOOLBOX_SRCS src/video/videotoolbox/*.cc)
-    list(APPEND VIDEOTOOLBOX_SRCS src/runtime/videotoolbox_device_api.cc)
+    # Add VideoToolbox source files (use absolute paths to avoid scope/path issues)
+    set(_DECORD_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    file(GLOB _VTB_DECODER_SRCS "${_DECORD_ROOT_DIR}/src/video/videotoolbox/*.cc")
+    set(VIDEOTOOLBOX_SRCS ${_VTB_DECODER_SRCS})
+    list(APPEND VIDEOTOOLBOX_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/src/runtime/videotoolbox_device_api.cc")
 
     # Add definitions
     add_definitions(-DDECORD_USE_VIDEOTOOLBOX)
 
-    # Add libraries
+    # Add libraries to a variable that the main target will link against
     list(APPEND DECORD_LINKER_LIBS ${VIDEOTOOLBOX_LIBRARY})
     list(APPEND DECORD_LINKER_LIBS ${COREVIDEO_LIBRARY})
     list(APPEND DECORD_LINKER_LIBS ${COREFOUNDATION_LIBRARY})
     list(APPEND DECORD_LINKER_LIBS ${COREMEDIA_LIBRARY})
     list(APPEND DECORD_LINKER_LIBS ${METAL_LIBRARY})
+
+    # Mark that VideoToolbox was configured successfully
+    set(VIDEOTOOLBOX_FOUND TRUE PARENT_SCOPE)
 
     set(VIDEOTOOLBOX_FOUND TRUE)
   else()

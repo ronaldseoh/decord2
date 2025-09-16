@@ -10,7 +10,7 @@
 #if DECORD_USE_CUDA
 #include "nvcodec/cuda_threaded_decoder.h"
 #endif
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DECORD_USE_VIDEOTOOLBOX)
 #include "videotoolbox/videotoolbox_threaded_decoder.h"
 #endif
 #include <algorithm>
@@ -162,7 +162,7 @@ void VideoReader::SetVideoStream(int stream_nb) {
     if (kDLCPU == ctx_.device_type) {
         decoder_ = std::unique_ptr<ThreadedDecoderInterface>(new FFMPEGThreadedDecoder());
     } else if (kDLGPU == ctx_.device_type) {
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DECORD_USE_VIDEOTOOLBOX)
         // Use VideoToolbox for GPU acceleration on macOS
         decoder_ = std::unique_ptr<ThreadedDecoderInterface>(new videotoolbox::VideoToolboxThreadedDecoder(
             ctx_.device_id, codecpar.get(), fmt_ctx_->iformat));
@@ -174,7 +174,7 @@ void VideoReader::SetVideoStream(int stream_nb) {
         LOG(FATAL) << "GPU acceleration not available on this platform.";
 #endif
     } else if (kDLMetal == ctx_.device_type) {
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(DECORD_USE_VIDEOTOOLBOX)
         // Use VideoToolbox for Metal device type on macOS
         decoder_ = std::unique_ptr<ThreadedDecoderInterface>(new videotoolbox::VideoToolboxThreadedDecoder(
             ctx_.device_id, codecpar.get(), fmt_ctx_->iformat));

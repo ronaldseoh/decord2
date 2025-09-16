@@ -12,6 +12,7 @@ include(cmake/modules/VideoToolbox.cmake)
 
 decord_option(USE_CUDA "Build with CUDA" OFF)
 decord_option(USE_MSVC_MT "Build with MT runtime on MSVC" OFF)
+decord_option(USE_VIDEOTOOLBOX "Build with VideoToolbox support (macOS only)" OFF)
 
 # ---------------------------------------------------------------------------
 # Source File Discovery
@@ -61,6 +62,11 @@ if(FFMPEG_LIBRARIES)
           PRIVATE
           ${FFMPEG_LIBRARIES}
   )
+endif()
+
+# Link against macOS frameworks and any extra libs collected by modules
+if (DECORD_LINKER_LIBS)
+  target_link_libraries(decord PRIVATE ${DECORD_LINKER_LIBS})
 endif()
 
 # Set the C++ standard and compiler options
