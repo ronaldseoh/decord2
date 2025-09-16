@@ -569,13 +569,51 @@ double VideoReader::GetRotation() const {
     if (rotate && *rotate->value && strcmp(rotate->value, "0"))
         theta = atof(rotate->value);
 
-    // Note: av_stream_get_side_data is not available in FFmpeg 6.0+
-    // uint8_t* displaymatrix = av_stream_get_side_data(active_st, AV_PKT_DATA_DISPLAYMATRIX, NULL);
-    // if (displaymatrix && !theta)
-    //     theta = -av_display_rotation_get((int32_t*) displaymatrix);
+    if (!theta) {
+        double theta_from_matrix = 0.0;
+        bool found_matrix = false;
+#if LIBAVFORMAT_VERSION_MAJOR >= 60
+        if (active_st->codecpar && active_st->codecpar->coded_side_data) {
+            for (int i = 0; i < active_st->codecpar->nb_coded_side_data; ++i) {
+                const AVPacketSideData *sd = &active_st->codecpar->coded_side_data[i];
+                if (sd && sd->type == AV_PKT_DATA_DISPLAYMATRIX && sd->data && sd->size >= (int)sizeof(int32_t) * 9) {
+                    theta_from_matrix = -av_display_rotation_get(reinterpret_cast<const int32_t*>(sd->data));
+                    found_matrix = true;
+                    break;
+                }
+            }
+        }
+#else
+        if (active_st->side_data) {
+            for (int i = 0; i < active_st->nb_side_data; ++i) {
+                const AVPacketSideData *sd = &active_st->side_data[i];
+                if (sd && sd->type == AV_PKT_DATA_DISPLAYMATRIX && sd->data && sd->size >= (int)sizeof(int32_t) * 9) {
+                    theta_from_matrix = -av_display_rotation_get(reinterpret_cast<const int32_t*>(sd->data));
+                    found_matrix = true;
+                    break;
+                }
+            }
+        }
+#endif
+        if (found_matrix) {
+            theta = theta_from_matrix;
+        }
+    }
 
-    theta = std::fmod(theta, 360);
-    if(theta < 0) theta += 360;
+    theta = std::fmod(theta, 360.0);
+    if (theta < 0) theta += 360.0;
+    // Snap to the nearest canonical right-angle to avoid float rounding issues
+    const double kAngles[4] = {0.0, 90.0, 180.0, 270.0};
+    double best = kAngles[0];
+    double best_diff = 1e9;
+    for (double a : kAngles) {
+        double diff = std::fabs(theta - a);
+        if (diff < best_diff) {
+            best_diff = diff;
+            best = a;
+        }
+    }
+    theta = best;
 
     return theta;
 }
