@@ -20,9 +20,6 @@ maintainers = [
     {name = "Johnny Núñez", email = "johnnynunez@ub.edu"},
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "decord.version.__version__"}
-
 [tool.cibuildwheel]
 archs = "auto64"
 build-verbosity = 1
