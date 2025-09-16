@@ -43,6 +43,17 @@ def get_lib_path():
 
 LIBS, VERSION = get_lib_path()
 
+# Allow injecting a PEP 440 local version (e.g., "+cu130") at build time.
+# This ensures the wheel filename and internal dist-info directory match,
+# avoiding PyPI upload errors when post-rename is attempted.
+local_suffix = os.environ.get("DECORD_LOCAL_VERSION_SUFFIX", "") or \
+               os.environ.get("LOCAL_VERSION_SUFFIX", "")
+if local_suffix:
+    normalized = local_suffix.strip().lstrip("+").lower()
+    # PEP 440: local version segments are lowercase, '.'-separated
+    normalized = normalized.replace("-", ".").replace("_", ".")
+    VERSION = f"{VERSION}+{normalized}"
+
 include_libs = False
 wheel_include_libs = False
 if "bdist_wheel" in sys.argv or os.getenv('CONDA_BUILD'):
