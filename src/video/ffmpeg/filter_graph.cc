@@ -33,7 +33,10 @@ void FFMPEGFilterGraph::Init(std::string filters_descr, AVCodecContext *dec_ctx)
     CHECK(buffersink) << "Error: no buffersink";
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs  = avfilter_inout_alloc();
-    enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_RGB24 , AV_PIX_FMT_NONE };
+    // Used only on legacy path (FFmpeg <= 6)
+    static const enum AVPixelFormat kPixFmts[] = {
+        AV_PIX_FMT_RGB24, AV_PIX_FMT_NONE
+    };
     // AVBufferSinkParams *buffersink_params;
 
     filter_graph_.reset(avfilter_graph_alloc());
@@ -60,14 +63,29 @@ void FFMPEGFilterGraph::Init(std::string filters_descr, AVCodecContext *dec_ctx)
     // LOG(INFO) << "create filter src";
 
     /* buffer video sink: to terminate the filter chain. */
-    // buffersink_params = av_buffersink_params_alloc();
-    // buffersink_params->pixel_fmts = pix_fmts;
-    CHECK_GE(avfilter_graph_create_filter(&buffersink_ctx_, buffersink, "out",
-       NULL, NULL, filter_graph_.get()), 0) << "Cannot create buffer sink";
-    // av_free(buffersink_params);
-    // LOG(INFO) << "create filter sink";
-    // CHECK_GE(av_opt_set_bin(buffersink_ctx_, "pix_fmts", (uint8_t *)&pix_fmts, sizeof(AV_PIX_FMT_RGB24), AV_OPT_SEARCH_CHILDREN), 0) << "Set bin error";
-    CHECK_GE(av_opt_set_bin(buffersink_ctx_, "pix_fmts", (uint8_t *)pix_fmts, sizeof(AVPixelFormat), AV_OPT_SEARCH_CHILDREN), 0) << "Set output pixel format error.";
+    #if LIBAVFILTER_VERSION_MAJOR >= 9
+        // FFmpeg 7/8+: set pix_fmts BEFORE init using dict; avoids deprecated int-list helpers.
+        buffersink_ctx_ = avfilter_graph_alloc_filter(filter_graph_.get(), buffersink, "out");
+        CHECK(buffersink_ctx_) << "Cannot allocate buffer sink";
+        {
+            AVDictionary* sink_opts = nullptr;
+            // A '|' separated list is accepted; we only need rgb24 here.
+            av_dict_set(&sink_opts, "pix_fmts", "rgb24", 0);
+            CHECK_GE(avfilter_init_dict(buffersink_ctx_, &sink_opts), 0)
+                << "Cannot init buffer sink";
+            av_dict_free(&sink_opts);
+        }
+    #else
+        // FFmpeg <= 6: legacy creation path with AVBufferSinkParams (sets pix_fmts at creation time)
+        {
+            AVBufferSinkParams *buffersink_params = av_buffersink_params_alloc();
+            buffersink_params->pixel_fmts = const_cast<enum AVPixelFormat*>(kPixFmts);
+            CHECK_GE(avfilter_graph_create_filter(&buffersink_ctx_, buffersink, "out",
+                   nullptr, buffersink_params, filter_graph_.get()), 0)
+                << "Cannot create buffer sink";
+            av_free(buffersink_params);
+        }
+    #endif
     // LOG(INFO) << "create filter set opt";
     /* Endpoints for the filter graph. */
     outputs->name       = av_strdup("in");
