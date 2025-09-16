@@ -28,6 +28,7 @@ extern "C" {
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/avutil.h>
+#include <libavutil/frame.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/pixfmt.h>
 #include <libavutil/opt.h>

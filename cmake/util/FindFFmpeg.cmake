@@ -27,6 +27,7 @@ if (FFMPEG_DIR)
             ${FFMPEG_DIR}/lib/libavcodec.dylib
             ${FFMPEG_DIR}/lib/libavutil.dylib
             ${FFMPEG_DIR}/lib/libavdevice.dylib
+            ${FFMPEG_DIR}/lib/libswscale.dylib
             ${FFMPEG_DIR}/lib/libswresample.dylib
     )
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -36,6 +37,7 @@ if (FFMPEG_DIR)
             ${FFMPEG_DIR}/lib/libavcodec.so
             ${FFMPEG_DIR}/lib/libavutil.so
             ${FFMPEG_DIR}/lib/libavdevice.so
+            ${FFMPEG_DIR}/lib/libswscale.so
             ${FFMPEG_DIR}/lib/libswresample.so
     )
   else()
@@ -45,6 +47,7 @@ if (FFMPEG_DIR)
             ${FFMPEG_DIR}/lib/libavcodec.lib
             ${FFMPEG_DIR}/lib/libavutil.lib
             ${FFMPEG_DIR}/lib/libavdevice.lib
+            ${FFMPEG_DIR}/lib/libswscale.lib
             ${FFMPEG_DIR}/lib/libswresample.lib
     )
   endif()
@@ -64,6 +67,7 @@ else (FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIR)
     pkg_check_modules(_FFMPEG_AVDEVICE libavdevice)
 
     pkg_check_modules(_FFMPEG_AVFILTER libavfilter)
+    pkg_check_modules(_FFMPEG_SWSCALE libswscale)
     pkg_check_modules(_FFMPEG_SWRESAMPLE libswresample)
   endif (PKG_CONFIG_FOUND)
 
@@ -103,6 +107,11 @@ else (FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIR)
           PATHS ${_FFMPEG_SWRESAMPLE_LIBRARY_DIRS} /usr/lib /usr/local/lib /opt/local/lib /sw/lib
   )
 
+  find_library(FFMPEG_SWSCALE
+          NAMES libswscale swscale
+          PATHS ${_FFMPEG_SWSCALE_LIBRARY_DIRS} /usr/lib /usr/local/lib /opt/local/lib /sw/lib
+  )
+
   if (FFMPEG_LIBAVCODEC AND FFMPEG_LIBAVFORMAT)
     set(FFMPEG_FOUND TRUE)
   endif()
@@ -115,6 +124,7 @@ else (FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIR)
             ${FFMPEG_LIBAVFILTER}
             ${FFMPEG_LIBAVCODEC}
             ${FFMPEG_LIBAVUTIL}
+            ${FFMPEG_SWSCALE}
             ${FFMPEG_SWRESAMPLE}
     )
 
