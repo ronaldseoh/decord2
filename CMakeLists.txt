@@ -8,6 +8,7 @@ include(cmake/util/Util.cmake)
 # Find FFmpeg (required for all builds, regardless of CUDA)
 include(cmake/util/FindFFmpeg.cmake)
 include(cmake/modules/FFmpeg.cmake)
+include(cmake/modules/VideoToolbox.cmake)
 
 decord_option(USE_CUDA "Build with CUDA" OFF)
 decord_option(USE_MSVC_MT "Build with MT runtime on MSVC" OFF)
@@ -40,7 +41,7 @@ endif()
 # ---------------------------------------------------------------------------
 # Library Target Definition
 # ---------------------------------------------------------------------------
-add_library(decord SHARED ${DECORD_CORE_SRCS})
+add_library(decord SHARED ${DECORD_CORE_SRCS} ${VIDEOTOOLBOX_SRCS})
 
 # --- Modern Target-Based Properties ---
 
