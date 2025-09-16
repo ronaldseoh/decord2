@@ -77,9 +77,9 @@ void FFMPEGFilterGraph::Init(std::string filters_descr, AVCodecContext *dec_ctx)
 
     /* Ensure output is RGB24 by adding format filter if necessary */
     if (filters_descr.empty()) {
-        filters_descr = "format=pix_fmts=rgb24";
+        filters_descr = "format=rgb24";
     } else {
-        filters_descr += ",format=pix_fmts=rgb24";
+        filters_descr += ",format=rgb24";
     }
 
     /* Parse filter description */
