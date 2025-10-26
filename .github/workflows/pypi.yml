@@ -137,7 +137,7 @@ jobs:
         with:
           package-dir: python
         env:
-          DECORD_LOCAL_VERSION_SUFFIX: cu130
+          DECORD_LOCAL_VERSION_SUFFIX: +cu130
           CIBW_BUILD: ${{ matrix.pybuilds }}
           CIBW_SKIP: "cp*-manylinux_i686 cp*-musllinux* cp*-win32 pp*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
@@ -209,7 +209,7 @@ jobs:
             cp libdecord.so ..
           # Set environment variables for the build process inside the container
           CIBW_ENVIRONMENT_LINUX: >
-            DECORD_LOCAL_VERSION_SUFFIX=cu130
+            DECORD_LOCAL_VERSION_SUFFIX=+cu130
             PATH=/usr/local/cuda-13.0/bin:$PATH
             LD_LIBRARY_PATH=/usr/local/cuda-13.0/lib64:/tmp/vendor/lib:$LD_LIBRARY_PATH
             PKG_CONFIG_PATH=/tmp/vendor/lib/pkgconfig
