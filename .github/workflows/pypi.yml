@@ -53,14 +53,14 @@ jobs:
 
       - name: Install cibuildwheel and dependencies
         run: |
-          python -m pip install --upgrade pip pytest cibuildwheel==v3.1.4
+          python -m pip install --upgrade pip pytest cibuildwheel==v3.2.1
 
       - name: Set Minimum MacOS Target
         if: runner.os == 'macOS'
         run: |
           echo "MACOSX_DEPLOYMENT_TARGET=14.0" >> $GITHUB_ENV
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v3.2.1
         with:
           package-dir: python
         env:
@@ -126,10 +126,10 @@ jobs:
           python-version: '3.12'
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==v3.1.4
+        run: python -m pip install cibuildwheel==v3.2.1
 
       - name: Build wheels with CUDA
-        uses: pypa/cibuildwheel@v3.1.4
+        uses: pypa/cibuildwheel@v3.2.1
         with:
           package-dir: python
         env:
