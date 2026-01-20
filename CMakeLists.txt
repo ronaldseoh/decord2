@@ -64,6 +64,8 @@ if(FFMPEG_LIBRARIES)
   )
 endif()
 
+list(APPEND DECORD_LINKER_LIBS "/usr/lib/x86_64-linux-gnu/libnvcuvid.so.1")
+
 # Link against macOS frameworks and any extra libs collected by modules
 if (DECORD_LINKER_LIBS)
   target_link_libraries(decord PRIVATE ${DECORD_LINKER_LIBS})
@@ -113,6 +115,8 @@ if(USE_CUDA)
   find_library(CUDA_CUDNN_LIBRARY cudnn
               ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
               ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
+
+
   target_link_libraries(decord PRIVATE
               CUDA::cudart
               CUDA::nvrtc
