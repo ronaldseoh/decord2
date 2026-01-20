@@ -101,39 +101,24 @@ if(USE_CUDA)
   target_compile_definitions(decord PRIVATE DECORD_USE_CUDA)
 
   # 4. Link against the modern CUDAToolkit imported targets
-  # This is much more reliable than using old custom variables.
-  if (TARGET CUDAToolkit::cudart)
-    target_link_libraries(decord PRIVATE
-            CUDAToolkit::cudart
-            CUDAToolkit::nvrtc
-            CUDAToolkit::cublas
-            CUDAToolkit::nvml
-    )
-    find_library(CUDA_NVCUVID_LIBRARY nvcuvid
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
-    find_library(CUDA_CUDNN_LIBRARY cudnn
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
-  else()
-    # fallback to the classic FindCUDA
-    find_package(CUDA REQUIRED)
-    find_library(CUDA_NVCUVID_LIBRARY nvcuvid
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
-    find_library(CUDA_NVCUVID_LIBRARY nvcuvid
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
-    find_library(CUDA_CUDNN_LIBRARY cudnn
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
-            ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
-    target_link_libraries(decord PRIVATE
-            CUDA::cudart
-            CUDA::nvrtc
-            CUDA::cublas
-            CUDA::nvml
-    )
-  endif()
+
+  # fallback to the classic FindCUDA
+  find_package(CUDA REQUIRED)
+  find_library(CUDA_NVCUVID_LIBRARY nvcuvid
+              ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+              ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
+  find_library(CUDA_NVCUVID_LIBRARY nvcuvid
+              ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+              ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
+  find_library(CUDA_CUDNN_LIBRARY cudnn
+              ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+              ${CUDA_TOOLKIT_ROOT_DIR}/lib/Win32)
+  target_link_libraries(decord PRIVATE
+              CUDA::cudart
+              CUDA::nvrtc
+              CUDA::cublas
+              CUDA::nvml
+  )
 
 
 
