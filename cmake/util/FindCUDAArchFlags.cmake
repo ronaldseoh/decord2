@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include_guard(GLOBAL)
 
 # ---- PUBLIC CACHE VARIABLE (unchanged) ---------------------------------
-set(CUDA_ARCH "" CACHE STRING
+set(CUDA_ARCH "native" CACHE STRING
         "Comma/space separated list of GPU architectures (e.g. 52;60,61;80). \
      Empty = sensible default for the detected CUDA version.")
 
